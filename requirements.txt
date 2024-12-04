@@ -1,0 +1,12 @@
+cloudpickle==3.1.0
+numpy==1.26.4
+psutil==6.0.0
+scikit-learn==1.5.1
+scipy==1.14.0
+python-dotenv==1.0.1
+pandas==2.2.2
+yfinance==0.2.50
+torch==2.5.1
+tsfm_public @ git+https://github.com/ibm-granite/granite-tsfm.git@fea9e7e578065d38491f777422a43cea71564994
+chronos-forecasting @ git+https://github.com/amazon-science/chronos-forecasting.git@133761a90145f77971a08c49bfc7cca318b2df9b
+nixtla==0.6.4
