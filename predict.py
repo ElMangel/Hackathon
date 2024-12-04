@@ -175,6 +175,22 @@ def evaluate_model(model, df, prediction_length=12, ci=0.9, complexity='tiny'):
     model_rmse = rmse(test_data.to_numpy().flatten(), forecast[1])
     return forecast, model_rmse
 
+def forecast_final(model, df, rmse_ch, rmse_gr, rmse_gpt, prediction_length=12, ci=0.9, complexity='tiny'):
+    train_data = df
+
+    if model=='chronos':
+        forecast = forecast_chronos(train_data, prediction_length, ci, complexity=complexity)
+    elif model=='granite':
+        forecast = forecast_granite(train_data, prediction_length, ci, 'granite')
+    elif model=='timegpt':
+        forecast = forecast_timegpt(train_data, prediction_length, ci)
+    elif model=='hybrid':
+        fcst_ch = forecast_chronos(train_data, prediction_length, ci, complexity=complexity)
+        fcst_gr = forecast_granite(train_data, prediction_length, ci, 'granite')
+        fcst_gpt = forecast_timegpt(train_data, prediction_length, ci)
+        forecast = forecast_hybrid(train_data, prediction_length, fcst_ch, fcst_gr, fcst_gpt, rmse_ch, rmse_gr, rmse_gpt)
+    return forecast
+
 def prediction(df, prediction_length=12, ci=0.9, complexity='tiny'):
     test_data = df[-prediction_length:]
     fcst_ch, rmse_ch = evaluate_model('chronos', df, prediction_length, ci, complexity=complexity)
@@ -186,11 +202,16 @@ def prediction(df, prediction_length=12, ci=0.9, complexity='tiny'):
     idx_winner = np.argmin(rmse_array)
     fcst_order = {0:fcst_ch, 1:fcst_gr, 2:fcst_gpt, 3:fcst_hy}
     name_order = {0:'chronos',1:'granite',2:'timegpt',3:'hybrid'}
-    print('Winner: ',name_order[idx_winner])
-    print('RMSE: ',np.min(rmse_array))
-    print('Forecast: ',fcst_order[idx_winner])
 
-    return name_order[idx_winner], fcst_order[idx_winner], np.min(rmse_array)
+    winner = name_order[idx_winner]
+    print('Winner: ',winner)
+    print('RMSE: ',np.min(rmse_array))
+    
+    forecast = forecast_final(winner, df, rmse_ch, rmse_gr, rmse_gpt, prediction_length, ci, complexity)
+    print('Forecast: ',forecast) 
+    #print('Forecast: ',fcst_order[idx_winner])
+
+    return name_order[idx_winner], forecast, np.min(rmse_array)
 
 def plot_predict(dataset, forecast, forecast_length, ci):
     import matplotlib.pyplot as plt
